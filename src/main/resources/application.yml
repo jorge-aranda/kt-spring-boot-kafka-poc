@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: kafka-poc
+  mongodb:
+    uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/kafkapoc}
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:kafka-poc}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

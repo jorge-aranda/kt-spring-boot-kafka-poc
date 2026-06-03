@@ -1,0 +1,29 @@
+# Build outputs
+build/
+.gradle/
+out/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VCS
+.git/
+.gitignore
+.gitattributes
+
+# Agent state and docs (not needed at build time)
+.junie/
+docs/
+*.md
+
+# OS metadata
+.DS_Store
+
+# Docker files (avoid recursion)
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
