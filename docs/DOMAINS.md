@@ -15,18 +15,18 @@ This document lists all bounded contexts (domains) in the project.
 
 ## Tasks
 
-- **Status:** Planned (to be implemented).
+- **Status:** In progress (milestone 1: REST CRUD + Mongo, Kafka pending).
 - **Package:** `io.jaranas.kafkapoc.tasks`
 - **Architecture:** Hexagonal (reference implementation for new domains).
 - **Domain-specific guidelines:**
   [`src/main/kotlin/io/jaranas/kafkapoc/tasks/AGENTS.md`](../src/main/kotlin/io/jaranas/kafkapoc/tasks/AGENTS.md)
-  (to be created with the domain).
+- **Note:** Kafka events publishing not implemented yet — coming in next milestone.
 
 ### Capabilities
 
 | Use Case | HTTP | Endpoint |
 |---|---|---|
-| Create a task | `PUT` | `/api/tasks` |
+| Create a task | `PUT` | `/api/tasks/{taskId}` |
 | List user tasks | `GET` | `/api/tasks` |
 | Get task detail | `GET` | `/api/tasks/{taskId}` |
 | Complete a task | `PATCH` | `/api/tasks/{taskId}/complete` |
