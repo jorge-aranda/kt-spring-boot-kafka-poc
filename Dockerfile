@@ -30,9 +30,7 @@ COPY --from=build /app/build/libs/*.jar app.jar
 RUN chown appuser:appuser app.jar
 
 # Default connection settings — point to Docker Compose service names.
-ENV SPRING_DATA_MONGODB_HOST=mongodb \
-    SPRING_DATA_MONGODB_PORT=27017 \
-    SPRING_DATA_MONGODB_DATABASE=kafkapoc \
+ENV SPRING_MONGODB_URI=mongodb://mongodb:27017/kafkapoc \
     SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
 USER appuser
