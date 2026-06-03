@@ -118,6 +118,24 @@ All connection settings are configurable via environment variables (Spring Boot 
 | `SPRING_MONGODB_URI`             | `mongodb://mongodb:27017/kafkapoc`  | `mongodb://localhost:27017/kafkapoc` |
 | `SPRING_KAFKA_BOOTSTRAP_SERVERS` | `kafka:9092`                        | `localhost:9092`                     |
 | `SPRING_KAFKA_CONSUMER_GROUP_ID` | `kafka-poc`                         | `kafka-poc`                          |
+| `APP_SECURITY_DEV_USER_ID`       | _(not set)_                         | `00000000-0000-0000-0000-000000000001` |
+
+### Authentication (local development)
+
+All `/api/**` endpoints require HTTP Basic authentication. A single in-memory user is configured
+for development:
+
+- **Username:** the UUIDv4 set in `APP_SECURITY_DEV_USER_ID` (default: `00000000-0000-0000-0000-000000000001`)
+- **Password:** `dev`
+
+Example with `curl`:
+
+```bash
+curl -u 00000000-0000-0000-0000-000000000001:dev \
+  -X PUT http://localhost:8080/api/tasks/$(uuidgen) \
+  -H 'Content-Type: application/json' \
+  -d '{"title": "My first task", "description": "Hello world"}'
+```
 
 Spring Boot 4 renamed the MongoDB properties: use `spring.mongodb.*`
 (formerly `spring.data.mongodb.*`).
@@ -146,11 +164,9 @@ For the full visibility rules, package layout and Kafka adapter conventions see
 
 ## Domains & Endpoints
 
-> All endpoints below are **planned** — they will land as each domain is implemented.
-
 ### Tasks (`io.jaranas.kafkapoc.tasks`)
 
-REST CRUD over MongoDB, publishes events to Kafka.
+**Milestone 1 (implemented):** REST CRUD + MongoDB persistence. Kafka events publishing not implemented yet — coming in next milestone.
 
 | Use case         | HTTP     | Endpoint                              |
 |------------------|----------|---------------------------------------|
@@ -190,7 +206,7 @@ Topic naming convention: `<domain>.<event>.v<version>` (kebab-case). Record keys
 ## Learning Roadmap
 
 1. **Bootstrap** — Gradle + Spring Boot 4 skeleton, Dockerfile, Docker Compose (this milestone). ✅
-2. **Tasks domain — REST + Mongo** — CRUD without Kafka yet.
+2. **Tasks domain — REST + Mongo** — CRUD without Kafka yet. ✅
 3. **Tasks domain — Kafka producer** — publish `task-created`, `task-completed`, `task-archived`.
 4. **Notifications domain — Kafka consumer** — materialize notifications in Mongo.
 5. **Notifications domain — REST reads** — GET / PATCH (read) / DELETE (archive).

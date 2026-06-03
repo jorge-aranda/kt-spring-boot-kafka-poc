@@ -85,26 +85,29 @@ infrastructure.repository.impl / infrastructure.messaging.{producer,consumer,mod
 ## Coding Rules
 
 1. **Language:** Kotlin — always use **named parameters** when possible.
-2. **Documentation & code:** Always in **English**.
-3. **Max line length:** **120 characters**.
-4. **IDs:** Use **UUIDv4** across all layers.
-5. **HTTP methods:**
+2. **Trailing commas:** Always add a trailing comma after the last element in multi-line parameter lists,
+   argument lists, destructuring declarations, and `when` entries. This applies to function definitions,
+   function calls, constructors, data classes, and any other position where Kotlin allows it.
+3. **Documentation & code:** Always in **English**.
+4. **Max line length:** **120 characters**.
+5. **IDs:** Use **UUIDv4** across all layers.
+6. **HTTP methods:**
    - `PUT` for creation (idempotent).
    - `PATCH` for partial updates (e.g. completing a task).
    - `DELETE` for archiving / soft-deleting.
    - `GET` for reads.
-6. **RESTful design:** Follow REST conventions for URL naming and HTTP semantics.
-7. **Authentication:** Use Spring Security's `Principal` (from the authenticated user) — never
+7. **RESTful design:** Follow REST conventions for URL naming and HTTP semantics.
+8. **Authentication:** Use Spring Security's `Principal` (from the authenticated user) — never
    custom headers like `X-User-Id`.
-8. **Domain repositories** are **interfaces only** — implementations live in
+9. **Domain repositories** are **interfaces only** — implementations live in
    `infrastructure.repository.impl`.
-9. **Code style:** Follow the existing style in the module/file you are editing.
-10. **Kafka topics:** Name topics as `<domain>.<event>.v<version>` in **kebab-case**
+10. **Code style:** Follow the existing style in the module/file you are editing.
+11. **Kafka topics:** Name topics as `<domain>.<event>.v<version>` in **kebab-case**
     (e.g. `tasks.task-created.v1`). Bump the `vN` suffix on breaking schema changes.
-11. **Kafka keys:** Use **UUIDv4** as record keys (consistent with the IDs rule).
-12. **Kafka adapters:** Producers and consumers live in `infrastructure.messaging.producer`
+12. **Kafka keys:** Use **UUIDv4** as record keys (consistent with the IDs rule).
+13. **Kafka adapters:** Producers and consumers live in `infrastructure.messaging.producer`
     and `infrastructure.messaging.consumer`. They depend only on `domain`.
-13. **Event ports:** Publisher interfaces (ports) live in `domain.event`; Kafka producers in
+14. **Event ports:** Publisher interfaces (ports) live in `domain.event`; Kafka producers in
     `infrastructure.messaging.producer` implement them.
 
 ---

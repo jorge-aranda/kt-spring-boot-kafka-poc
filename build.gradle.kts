@@ -26,6 +26,12 @@ dependencies {
     // Persistence
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
+    // Security
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    // Validation
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+
     // Messaging
     implementation("org.springframework.kafka:spring-kafka")
 
@@ -37,6 +43,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("org.springframework.security:spring-security-test")
 }
 
 kotlin {

@@ -34,7 +34,7 @@ fun `should do something`() {
     val input = SomeMother.random()
 
     // when
-    val result = useCase.execute(input)
+    val result = useCase(input = input)
 
     // then
     assertEquals(expected, result)
@@ -69,14 +69,14 @@ ObjectMothers provide factory methods to create test instances of domain and app
 ```kotlin
 object TaskMother {
     fun random(
-        id: String = UUID.randomUUID().toString(),
-        userId: String = UUID.randomUUID().toString(),
+        id: UUID = UUID.randomUUID(),
+        userId: UUID = UUID.randomUUID(),
         title: String = "Task title",
         description: String = "Task description",
         completed: Boolean = false,
         archived: Boolean = false,
         createdAt: Instant = Instant.parse("2025-01-01T00:00:00Z"),
-        updatedAt: Instant = Instant.parse("2025-01-01T00:00:00Z")
+        updatedAt: Instant = Instant.parse("2025-01-01T00:00:00Z"),
     ): Task = Task(
         id = id,
         userId = userId,
@@ -85,7 +85,7 @@ object TaskMother {
         completed = completed,
         archived = archived,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )
 }
 ```
@@ -104,13 +104,12 @@ object TaskMother {
 
 ```kotlin
 class FakeTaskRepository : TaskRepository {
-    private val store = mutableMapOf<String, Task>()
+    private val store = mutableMapOf<UUID, Task>()
 
     override fun save(task: Task): Task { store[task.id] = task; return task }
-    override fun findById(id: String): Task? = store[id]
-    override fun findByUserIdAndArchivedFalse(userId: String): List<Task> =
+    override fun findById(id: UUID): Task? = store[id]
+    override fun findByUserIdAndArchivedFalse(userId: UUID): List<Task> =
         store.values.filter { it.userId == userId && !it.archived }
-    override fun deleteById(id: String) { store.remove(id) }
 }
 ```
 
@@ -142,15 +141,20 @@ class CreateTaskUseCaseTest {
     @Test
     fun `should create a task from request`() {
         // given
-        val request = TaskRequestMother.random(userId = "user-1", title = "My task", description = "desc")
+        val userId = UUID.randomUUID()
+        val request = TaskRequestMother.random(
+            userId = userId,
+            title = "My task",
+            description = "desc",
+        )
         val taskSlot = slot<Task>()
         every { taskService.create(task = capture(taskSlot)) } answers { taskSlot.captured }
 
         // when
-        val result = useCase.execute(request = request)
+        val result = useCase(request = request)
 
         // then
-        assertEquals("user-1", result.userId)
+        assertEquals(userId, result.userId)
         assertEquals("My task", result.title)
         assertEquals("desc", result.description)
         assertNotNull(result.id)
