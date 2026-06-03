@@ -2,7 +2,7 @@ package io.jaranas.kafkapoc.tasks.infrastructure.repository.impl
 
 import io.jaranas.kafkapoc.tasks.domain.model.Task
 import io.jaranas.kafkapoc.tasks.domain.repository.TaskRepository
-import io.jaranas.kafkapoc.tasks.infrastructure.repository.TaskDocument
+import io.jaranas.kafkapoc.tasks.infrastructure.model.TaskDbo
 import io.jaranas.kafkapoc.tasks.infrastructure.repository.TaskMongoRepository
 import org.springframework.stereotype.Component
 
@@ -12,7 +12,7 @@ class MongoTaskRepository(
 ) : TaskRepository {
 
     override fun save(task: Task): Task =
-        taskMongoRepository.save(task.toDocument()).toDomain()
+        taskMongoRepository.save(task.toDbo()).toDomain()
 
     override fun findById(id: String): Task? =
         taskMongoRepository.findById(id).orElse(null)?.toDomain()
@@ -21,7 +21,7 @@ class MongoTaskRepository(
         taskMongoRepository.findByUserIdAndArchivedFalse(userId = userId).map { it.toDomain() }
 }
 
-private fun Task.toDocument(): TaskDocument = TaskDocument(
+private fun Task.toDbo(): TaskDbo = TaskDbo(
     id = id,
     userId = userId,
     title = title,
@@ -32,7 +32,7 @@ private fun Task.toDocument(): TaskDocument = TaskDocument(
     updatedAt = updatedAt,
 )
 
-private fun TaskDocument.toDomain(): Task = Task(
+private fun TaskDbo.toDomain(): Task = Task(
     id = id,
     userId = userId,
     title = title,

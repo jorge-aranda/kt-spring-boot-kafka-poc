@@ -9,6 +9,6 @@ class CompleteTaskUseCase(
     private val taskService: TaskService,
 ) {
 
-    fun execute(taskId: String, userId: String): Task =
+    operator fun invoke(taskId: String, userId: String): Task =
         taskService.complete(taskId = taskId, userId = userId)
 }

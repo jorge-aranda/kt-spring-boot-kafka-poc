@@ -20,7 +20,7 @@ class CompleteTaskUseCaseTest {
         every { taskService.complete(taskId = task.id, userId = "user-1") } returns completed
 
         // when
-        val result = useCase.execute(taskId = task.id, userId = "user-1")
+        val result = useCase(taskId = task.id, userId = "user-1")
 
         // then
         assertEquals(completed, result)

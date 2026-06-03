@@ -20,7 +20,7 @@ class ListUserTasksUseCaseTest {
         every { taskService.listActiveForUser(userId = userId) } returns tasks
 
         // when
-        val result = useCase.execute(userId = userId)
+        val result = useCase(userId = userId)
 
         // then
         assertEquals(tasks, result)

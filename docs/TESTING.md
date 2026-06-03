@@ -34,7 +34,7 @@ fun `should do something`() {
     val input = SomeMother.random()
 
     // when
-    val result = useCase.execute(input = input)
+    val result = useCase(input = input)
 
     // then
     assertEquals(expected, result)
@@ -151,7 +151,7 @@ class CreateTaskUseCaseTest {
         every { taskService.create(task = capture(taskSlot)) } answers { taskSlot.captured }
 
         // when
-        val result = useCase.execute(request = request)
+        val result = useCase(request = request)
 
         // then
         assertEquals("user-1", result.userId)

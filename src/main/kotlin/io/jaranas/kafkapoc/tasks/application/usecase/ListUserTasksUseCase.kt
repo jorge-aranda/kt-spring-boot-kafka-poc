@@ -9,6 +9,6 @@ class ListUserTasksUseCase(
     private val taskService: TaskService,
 ) {
 
-    fun execute(userId: String): List<Task> =
+    operator fun invoke(userId: String): List<Task> =
         taskService.listActiveForUser(userId = userId)
 }

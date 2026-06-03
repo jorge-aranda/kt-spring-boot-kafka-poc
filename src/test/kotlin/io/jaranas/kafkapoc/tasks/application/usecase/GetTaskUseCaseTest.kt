@@ -19,7 +19,7 @@ class GetTaskUseCaseTest {
         every { taskService.findByIdForUser(taskId = task.id, userId = "user-1") } returns task
 
         // when
-        val result = useCase.execute(taskId = task.id, userId = "user-1")
+        val result = useCase(taskId = task.id, userId = "user-1")
 
         // then
         assertEquals(task, result)

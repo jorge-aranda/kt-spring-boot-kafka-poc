@@ -9,6 +9,6 @@ class ArchiveTaskUseCase(
     private val taskService: TaskService,
 ) {
 
-    fun execute(taskId: String, userId: String): Task =
+    operator fun invoke(taskId: String, userId: String): Task =
         taskService.archive(taskId = taskId, userId = userId)
 }

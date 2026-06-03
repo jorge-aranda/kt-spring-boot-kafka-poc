@@ -1,4 +1,4 @@
-package io.jaranas.kafkapoc.tasks.infrastructure.repository
+package io.jaranas.kafkapoc.tasks.infrastructure.model
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.CompoundIndex
@@ -7,7 +7,7 @@ import java.time.Instant
 
 @Document(collection = "tasks")
 @CompoundIndex(name = "user_archived_idx", def = "{ 'userId': 1, 'archived': 1 }")
-data class TaskDocument(
+data class TaskDbo(
     @Id val id: String,
     val userId: String,
     val title: String,

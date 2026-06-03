@@ -44,7 +44,6 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("io.mockk:mockk:1.13.13")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 }
 
 kotlin {

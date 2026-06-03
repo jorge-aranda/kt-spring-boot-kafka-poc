@@ -1,8 +1,5 @@
 package io.jaranas.kafkapoc.tasks.api.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.jaranas.kafkapoc.tasks.application.usecase.ArchiveTaskUseCase
 import io.jaranas.kafkapoc.tasks.application.usecase.CompleteTaskUseCase
 import io.jaranas.kafkapoc.tasks.application.usecase.CreateTaskUseCase
@@ -15,7 +12,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -24,6 +21,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import tools.jackson.databind.json.JsonMapper
 import java.security.Principal
 import java.util.UUID
 
@@ -44,7 +42,7 @@ class TaskControllerTest {
     )
 
     private lateinit var mockMvc: MockMvc
-    private val objectMapper = ObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
+    private val objectMapper = JsonMapper.builder().build()
     private val userId = UUID.randomUUID().toString()
     private val principal: Principal = mockk()
 
@@ -54,7 +52,7 @@ class TaskControllerTest {
         mockMvc = MockMvcBuilders
             .standaloneSetup(controller)
             .setControllerAdvice(TaskExceptionHandler())
-            .setMessageConverters(MappingJackson2HttpMessageConverter(objectMapper))
+            .setMessageConverters(JacksonJsonHttpMessageConverter(objectMapper))
             .build()
     }
 
@@ -63,8 +61,8 @@ class TaskControllerTest {
         // given
         val taskId = UUID.randomUUID().toString()
         val task = TaskMother.random(id = taskId, userId = userId)
-        every { getTaskUseCase.execute(taskId = taskId, userId = userId) } throws TaskNotFoundException(taskId = taskId)
-        every { createTaskUseCase.execute(request = any()) } returns task
+        every { getTaskUseCase(taskId = taskId, userId = userId) } throws TaskNotFoundException(taskId = taskId)
+        every { createTaskUseCase(request = any()) } returns task
         val body = """{"title": "My task", "description": "desc"}"""
 
         // when / then
@@ -83,7 +81,7 @@ class TaskControllerTest {
         // given
         val taskId = UUID.randomUUID().toString()
         val task = TaskMother.random(id = taskId, userId = userId)
-        every { getTaskUseCase.execute(taskId = taskId, userId = userId) } returns task
+        every { getTaskUseCase(taskId = taskId, userId = userId) } returns task
         val body = """{"title": "My task", "description": "desc"}"""
 
         // when / then
@@ -101,7 +99,7 @@ class TaskControllerTest {
     fun `should return 200 with user tasks on GET api tasks`() {
         // given
         val tasks = listOf(TaskMother.random(userId = userId), TaskMother.random(userId = userId))
-        every { listUserTasksUseCase.execute(userId = userId) } returns tasks
+        every { listUserTasksUseCase(userId = userId) } returns tasks
 
         // when / then
         mockMvc.perform(
@@ -115,7 +113,7 @@ class TaskControllerTest {
     fun `should return 404 when getting a non-existing task`() {
         // given
         val taskId = UUID.randomUUID().toString()
-        every { getTaskUseCase.execute(taskId = taskId, userId = userId) } throws TaskNotFoundException(taskId = taskId)
+        every { getTaskUseCase(taskId = taskId, userId = userId) } throws TaskNotFoundException(taskId = taskId)
 
         // when / then
         mockMvc.perform(
@@ -129,7 +127,7 @@ class TaskControllerTest {
         // given
         val task = TaskMother.random(userId = userId)
         val completed = task.copy(completed = true)
-        every { completeTaskUseCase.execute(taskId = task.id, userId = userId) } returns completed
+        every { completeTaskUseCase(taskId = task.id, userId = userId) } returns completed
 
         // when / then
         mockMvc.perform(
@@ -143,7 +141,7 @@ class TaskControllerTest {
     fun `should return 204 on DELETE archive`() {
         // given
         val task = TaskMother.random(userId = userId)
-        every { archiveTaskUseCase.execute(taskId = task.id, userId = userId) } returns task.copy(archived = true)
+        every { archiveTaskUseCase(taskId = task.id, userId = userId) } returns task.copy(archived = true)
 
         // when / then
         mockMvc.perform(

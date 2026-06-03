@@ -39,7 +39,7 @@ class TaskController(
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
         val userId = principal.name
-        val existing = runCatching { getTaskUseCase.execute(taskId = taskId, userId = userId) }.getOrNull()
+        val existing = runCatching { getTaskUseCase(taskId = taskId, userId = userId) }.getOrNull()
         return if (existing != null) {
             ResponseEntity.ok(existing.toResponseDto())
         } else {
@@ -49,14 +49,14 @@ class TaskController(
                 title = body.title,
                 description = body.description,
             )
-            val created = createTaskUseCase.execute(request = request)
+            val created = createTaskUseCase(request = request)
             ResponseEntity.status(HttpStatus.CREATED).body(created.toResponseDto())
         }
     }
 
     @GetMapping
     fun listTasks(principal: Principal): ResponseEntity<List<TaskResponseDto>> {
-        val tasks = listUserTasksUseCase.execute(userId = principal.name)
+        val tasks = listUserTasksUseCase(userId = principal.name)
         return ResponseEntity.ok(tasks.map { it.toResponseDto() })
     }
 
@@ -65,7 +65,7 @@ class TaskController(
         @PathVariable taskId: String,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val task = getTaskUseCase.execute(taskId = taskId, userId = principal.name)
+        val task = getTaskUseCase(taskId = taskId, userId = principal.name)
         return ResponseEntity.ok(task.toResponseDto())
     }
 
@@ -74,7 +74,7 @@ class TaskController(
         @PathVariable taskId: String,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val task = completeTaskUseCase.execute(taskId = taskId, userId = principal.name)
+        val task = completeTaskUseCase(taskId = taskId, userId = principal.name)
         return ResponseEntity.ok(task.toResponseDto())
     }
 
@@ -83,7 +83,7 @@ class TaskController(
         @PathVariable taskId: String,
         principal: Principal,
     ): ResponseEntity<Void> {
-        archiveTaskUseCase.execute(taskId = taskId, userId = principal.name)
+        archiveTaskUseCase(taskId = taskId, userId = principal.name)
         return ResponseEntity.noContent().build()
     }
 }

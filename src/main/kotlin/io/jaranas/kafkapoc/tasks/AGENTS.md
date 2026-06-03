@@ -23,8 +23,8 @@ io.jaranas.kafkapoc.tasks
 │   ├── repository/          ← TaskRepository (port interface)
 │   └── service/             ← TaskService
 └── infrastructure/
+    ├── model/               ← TaskDbo
     └── repository/
-        ├── TaskDocument.kt
         ├── TaskMongoRepository.kt
         └── impl/MongoTaskRepository.kt
 ```

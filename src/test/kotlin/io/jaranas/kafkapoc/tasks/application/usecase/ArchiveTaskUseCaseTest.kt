@@ -20,7 +20,7 @@ class ArchiveTaskUseCaseTest {
         every { taskService.archive(taskId = task.id, userId = "user-1") } returns archived
 
         // when
-        val result = useCase.execute(taskId = task.id, userId = "user-1")
+        val result = useCase(taskId = task.id, userId = "user-1")
 
         // then
         assertEquals(archived, result)

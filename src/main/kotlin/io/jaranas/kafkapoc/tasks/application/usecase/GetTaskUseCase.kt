@@ -9,6 +9,6 @@ class GetTaskUseCase(
     private val taskService: TaskService,
 ) {
 
-    fun execute(taskId: String, userId: String): Task =
+    operator fun invoke(taskId: String, userId: String): Task =
         taskService.findByIdForUser(taskId = taskId, userId = userId)
 }

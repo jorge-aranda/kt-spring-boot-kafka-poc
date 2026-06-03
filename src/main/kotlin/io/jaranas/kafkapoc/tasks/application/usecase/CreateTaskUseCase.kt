@@ -11,7 +11,7 @@ class CreateTaskUseCase(
     private val taskService: TaskService,
 ) {
 
-    fun execute(request: TaskRequest): Task {
+    operator fun invoke(request: TaskRequest): Task {
         val now = Instant.now()
         val task = Task(
             id = request.taskId,
