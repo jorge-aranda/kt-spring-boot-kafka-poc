@@ -1,5 +1,6 @@
 package io.jaranas.kafkapoc.tasks.domain.service
 
+import io.jaranas.kafkapoc.tasks.domain.event.FakeTaskEventPublisher
 import io.jaranas.kafkapoc.tasks.domain.exception.TaskNotFoundException
 import io.jaranas.kafkapoc.tasks.domain.model.TaskMother
 import io.jaranas.kafkapoc.tasks.domain.repository.FakeTaskRepository
@@ -15,12 +16,17 @@ import java.util.UUID
 class TaskServiceTest {
 
     private lateinit var taskRepository: FakeTaskRepository
+    private lateinit var taskEventPublisher: FakeTaskEventPublisher
     private lateinit var taskService: TaskService
 
     @BeforeEach
     fun setUp() {
         taskRepository = FakeTaskRepository()
-        taskService = TaskService(taskRepository = taskRepository)
+        taskEventPublisher = FakeTaskEventPublisher()
+        taskService = TaskService(
+            taskRepository = taskRepository,
+            taskEventPublisher = taskEventPublisher,
+        )
     }
 
     @Test
@@ -37,6 +43,8 @@ class TaskServiceTest {
         assertEquals(task.title, result.title)
         assertNotNull(result.createdAt)
         assertNotNull(result.updatedAt)
+        assertEquals(1, taskEventPublisher.createdEvents.size)
+        assertEquals(task.id, taskEventPublisher.createdEvents.first().taskId)
     }
 
     @Test
@@ -50,6 +58,7 @@ class TaskServiceTest {
 
         // then
         assertEquals(task, result)
+        assertTrue(taskEventPublisher.createdEvents.isEmpty())
     }
 
     @Test
@@ -97,6 +106,8 @@ class TaskServiceTest {
         // then
         assertTrue(result.completed)
         assertTrue(result.updatedAt.isAfter(task.updatedAt) || result.updatedAt == task.updatedAt)
+        assertEquals(1, taskEventPublisher.completedEvents.size)
+        assertEquals(task.id, taskEventPublisher.completedEvents.first().taskId)
     }
 
     @Test
@@ -112,6 +123,7 @@ class TaskServiceTest {
         // then
         assertTrue(result.completed)
         assertEquals(task, result)
+        assertTrue(taskEventPublisher.completedEvents.isEmpty())
     }
 
     @Test
@@ -127,6 +139,8 @@ class TaskServiceTest {
         // then
         assertTrue(result.archived)
         assertFalse(result.completed)
+        assertEquals(1, taskEventPublisher.archivedEvents.size)
+        assertEquals(task.id, taskEventPublisher.archivedEvents.first().taskId)
     }
 
     @Test
