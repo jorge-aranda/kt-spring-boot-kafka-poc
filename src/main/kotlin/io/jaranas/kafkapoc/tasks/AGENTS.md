@@ -37,7 +37,8 @@ io.jaranas.kafkapoc.tasks
 
 - The client generates the `taskId` (UUIDv4) and sends it in the URL.
 - All identifiers (`id`, `userId`) are typed as `UUID` across all layers (domain, application, infrastructure, API).
-- The API layer receives `taskId` as a `String` path variable and `userId` from `principal.name` (String), and converts both to `UUID` via `UUID.fromString()` before calling use cases.
+- The API layer declares `@PathVariable taskId: UUID` — Spring MVC converts the path segment automatically.
+- `userId` is obtained from `principal.name` (always a `String`) and converted via `UUID.fromString(principal.name)`.
 - If the task already exists and belongs to the authenticated user, the existing task is returned (200).
 - If the task exists but belongs to another user, a `TaskNotFoundException` is thrown (404).
 - If the task does not exist, it is created and returned (201).

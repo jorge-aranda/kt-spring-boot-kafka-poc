@@ -35,19 +35,18 @@ class TaskController(
 
     @PutMapping("/{taskId}")
     fun createTask(
-        @PathVariable taskId: String,
+        @PathVariable taskId: UUID,
         @Valid @RequestBody body: CreateTaskRequestDto,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val userUuid = UUID.fromString(principal.name)
-        val taskUuid = UUID.fromString(taskId)
-        val existing = runCatching { getTaskUseCase(taskId = taskUuid, userId = userUuid) }.getOrNull()
+        val userId = UUID.fromString(principal.name)
+        val existing = runCatching { getTaskUseCase(taskId = taskId, userId = userId) }.getOrNull()
         return if (existing != null) {
             ResponseEntity.ok(existing.toResponseDto())
         } else {
             val request = TaskRequest(
-                taskId = taskUuid,
-                userId = userUuid,
+                taskId = taskId,
+                userId = userId,
                 title = body.title,
                 description = body.description,
             )
@@ -64,28 +63,28 @@ class TaskController(
 
     @GetMapping("/{taskId}")
     fun getTask(
-        @PathVariable taskId: String,
+        @PathVariable taskId: UUID,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val task = getTaskUseCase(taskId = UUID.fromString(taskId), userId = UUID.fromString(principal.name))
+        val task = getTaskUseCase(taskId = taskId, userId = UUID.fromString(principal.name))
         return ResponseEntity.ok(task.toResponseDto())
     }
 
     @PatchMapping("/{taskId}/complete")
     fun completeTask(
-        @PathVariable taskId: String,
+        @PathVariable taskId: UUID,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val task = completeTaskUseCase(taskId = UUID.fromString(taskId), userId = UUID.fromString(principal.name))
+        val task = completeTaskUseCase(taskId = taskId, userId = UUID.fromString(principal.name))
         return ResponseEntity.ok(task.toResponseDto())
     }
 
     @DeleteMapping("/{taskId}")
     fun archiveTask(
-        @PathVariable taskId: String,
+        @PathVariable taskId: UUID,
         principal: Principal,
     ): ResponseEntity<Void> {
-        archiveTaskUseCase(taskId = UUID.fromString(taskId), userId = UUID.fromString(principal.name))
+        archiveTaskUseCase(taskId = taskId, userId = UUID.fromString(principal.name))
         return ResponseEntity.noContent().build()
     }
 }
