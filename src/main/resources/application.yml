@@ -5,8 +5,16 @@ spring:
     uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/kafkapoc}
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:kafka-poc}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "io.jaranas.kafkapoc.*"
+        spring.json.use.type.headers: false
 
 management:
   endpoints:
