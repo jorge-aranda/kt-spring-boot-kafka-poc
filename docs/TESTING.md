@@ -34,7 +34,7 @@ fun `should do something`() {
     val input = SomeMother.random()
 
     // when
-    val result = useCase.execute(input)
+    val result = useCase.execute(input = input)
 
     // then
     assertEquals(expected, result)
@@ -76,7 +76,7 @@ object TaskMother {
         completed: Boolean = false,
         archived: Boolean = false,
         createdAt: Instant = Instant.parse("2025-01-01T00:00:00Z"),
-        updatedAt: Instant = Instant.parse("2025-01-01T00:00:00Z")
+        updatedAt: Instant = Instant.parse("2025-01-01T00:00:00Z"),
     ): Task = Task(
         id = id,
         userId = userId,
@@ -85,7 +85,7 @@ object TaskMother {
         completed = completed,
         archived = archived,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )
 }
 ```
@@ -142,7 +142,11 @@ class CreateTaskUseCaseTest {
     @Test
     fun `should create a task from request`() {
         // given
-        val request = TaskRequestMother.random(userId = "user-1", title = "My task", description = "desc")
+        val request = TaskRequestMother.random(
+            userId = "user-1",
+            title = "My task",
+            description = "desc",
+        )
         val taskSlot = slot<Task>()
         every { taskService.create(task = capture(taskSlot)) } answers { taskSlot.captured }
 
