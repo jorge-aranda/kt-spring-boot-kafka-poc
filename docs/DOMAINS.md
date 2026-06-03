@@ -15,12 +15,11 @@ This document lists all bounded contexts (domains) in the project.
 
 ## Tasks
 
-- **Status:** In progress (milestone 1: REST CRUD + Mongo, Kafka pending).
+- **Status:** Complete (REST CRUD + Mongo + Kafka events publishing).
 - **Package:** `io.jaranas.kafkapoc.tasks`
 - **Architecture:** Hexagonal (reference implementation for new domains).
 - **Domain-specific guidelines:**
   [`src/main/kotlin/io/jaranas/kafkapoc/tasks/AGENTS.md`](../src/main/kotlin/io/jaranas/kafkapoc/tasks/AGENTS.md)
-- **Note:** Kafka events publishing not implemented yet — coming in next milestone.
 
 ### Capabilities
 
@@ -60,7 +59,7 @@ This document lists all bounded contexts (domains) in the project.
 
 ## Notifications
 
-- **Status:** Planned (to be implemented).
+- **Status:** Complete (Kafka consumer + REST read API + Mongo).
 - **Package:** `io.jaranas.kafkapoc.notifications`
 - **Architecture:** Hexagonal — Kafka-driven (no write endpoints).
 - **Domain-specific guidelines:**
