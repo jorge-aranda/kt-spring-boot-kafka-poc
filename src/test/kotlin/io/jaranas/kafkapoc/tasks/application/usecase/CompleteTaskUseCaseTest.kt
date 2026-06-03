@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class CompleteTaskUseCaseTest {
 
@@ -15,12 +16,13 @@ class CompleteTaskUseCaseTest {
     @Test
     fun `should invoke taskService complete and return result`() {
         // given
-        val task = TaskMother.random(userId = "user-1")
+        val userId = UUID.randomUUID()
+        val task = TaskMother.random(userId = userId)
         val completed = task.copy(completed = true)
-        every { taskService.complete(taskId = task.id, userId = "user-1") } returns completed
+        every { taskService.complete(taskId = task.id, userId = userId) } returns completed
 
         // when
-        val result = useCase(taskId = task.id, userId = "user-1")
+        val result = useCase(taskId = task.id, userId = userId)
 
         // then
         assertEquals(completed, result)

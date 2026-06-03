@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.security.Principal
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -38,14 +39,15 @@ class TaskController(
         @Valid @RequestBody body: CreateTaskRequestDto,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val userId = principal.name
-        val existing = runCatching { getTaskUseCase(taskId = taskId, userId = userId) }.getOrNull()
+        val userUuid = UUID.fromString(principal.name)
+        val taskUuid = UUID.fromString(taskId)
+        val existing = runCatching { getTaskUseCase(taskId = taskUuid, userId = userUuid) }.getOrNull()
         return if (existing != null) {
             ResponseEntity.ok(existing.toResponseDto())
         } else {
             val request = TaskRequest(
-                taskId = taskId,
-                userId = userId,
+                taskId = taskUuid,
+                userId = userUuid,
                 title = body.title,
                 description = body.description,
             )
@@ -56,7 +58,7 @@ class TaskController(
 
     @GetMapping
     fun listTasks(principal: Principal): ResponseEntity<List<TaskResponseDto>> {
-        val tasks = listUserTasksUseCase(userId = principal.name)
+        val tasks = listUserTasksUseCase(userId = UUID.fromString(principal.name))
         return ResponseEntity.ok(tasks.map { it.toResponseDto() })
     }
 
@@ -65,7 +67,7 @@ class TaskController(
         @PathVariable taskId: String,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val task = getTaskUseCase(taskId = taskId, userId = principal.name)
+        val task = getTaskUseCase(taskId = UUID.fromString(taskId), userId = UUID.fromString(principal.name))
         return ResponseEntity.ok(task.toResponseDto())
     }
 
@@ -74,7 +76,7 @@ class TaskController(
         @PathVariable taskId: String,
         principal: Principal,
     ): ResponseEntity<TaskResponseDto> {
-        val task = completeTaskUseCase(taskId = taskId, userId = principal.name)
+        val task = completeTaskUseCase(taskId = UUID.fromString(taskId), userId = UUID.fromString(principal.name))
         return ResponseEntity.ok(task.toResponseDto())
     }
 
@@ -83,7 +85,7 @@ class TaskController(
         @PathVariable taskId: String,
         principal: Principal,
     ): ResponseEntity<Void> {
-        archiveTaskUseCase(taskId = taskId, userId = principal.name)
+        archiveTaskUseCase(taskId = UUID.fromString(taskId), userId = UUID.fromString(principal.name))
         return ResponseEntity.noContent().build()
     }
 }

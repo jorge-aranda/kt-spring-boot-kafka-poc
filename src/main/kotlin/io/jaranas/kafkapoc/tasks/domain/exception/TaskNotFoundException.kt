@@ -1,3 +1,5 @@
 package io.jaranas.kafkapoc.tasks.domain.exception
 
-class TaskNotFoundException(taskId: String) : RuntimeException("Task not found: $taskId")
+import java.util.UUID
+
+class TaskNotFoundException(taskId: UUID) : RuntimeException("Task not found: $taskId")

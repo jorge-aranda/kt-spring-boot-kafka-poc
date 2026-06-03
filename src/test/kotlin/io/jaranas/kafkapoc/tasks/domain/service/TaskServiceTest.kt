@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.UUID
 
 class TaskServiceTest {
 
@@ -56,7 +57,7 @@ class TaskServiceTest {
         // given
         val existing = TaskMother.random()
         taskRepository.save(task = existing)
-        val conflicting = existing.copy(userId = "other-user")
+        val conflicting = existing.copy(userId = UUID.randomUUID())
 
         // when / then
         assertThrows<TaskNotFoundException> {
@@ -67,7 +68,7 @@ class TaskServiceTest {
     @Test
     fun `should list only non-archived tasks for the given user`() {
         // given
-        val userId = "user-1"
+        val userId = UUID.randomUUID()
         val active = TaskMother.random(userId = userId)
         val archived = TaskMother.archived(userId = userId)
         val otherUser = TaskMother.random()
@@ -86,11 +87,12 @@ class TaskServiceTest {
     @Test
     fun `should mark a task as completed and update updatedAt`() {
         // given
-        val task = TaskMother.random(userId = "user-1")
+        val userId = UUID.randomUUID()
+        val task = TaskMother.random(userId = userId)
         taskRepository.save(task = task)
 
         // when
-        val result = taskService.complete(taskId = task.id, userId = "user-1")
+        val result = taskService.complete(taskId = task.id, userId = userId)
 
         // then
         assertTrue(result.completed)
@@ -100,11 +102,12 @@ class TaskServiceTest {
     @Test
     fun `should be no-op when completing an already completed task`() {
         // given
-        val task = TaskMother.completed(userId = "user-1")
+        val userId = UUID.randomUUID()
+        val task = TaskMother.completed(userId = userId)
         taskRepository.save(task = task)
 
         // when
-        val result = taskService.complete(taskId = task.id, userId = "user-1")
+        val result = taskService.complete(taskId = task.id, userId = userId)
 
         // then
         assertTrue(result.completed)
@@ -114,11 +117,12 @@ class TaskServiceTest {
     @Test
     fun `should archive a task and update updatedAt`() {
         // given
-        val task = TaskMother.random(userId = "user-1")
+        val userId = UUID.randomUUID()
+        val task = TaskMother.random(userId = userId)
         taskRepository.save(task = task)
 
         // when
-        val result = taskService.archive(taskId = task.id, userId = "user-1")
+        val result = taskService.archive(taskId = task.id, userId = userId)
 
         // then
         assertTrue(result.archived)
@@ -128,12 +132,13 @@ class TaskServiceTest {
     @Test
     fun `should throw TaskNotFoundException when archiving a task of another user`() {
         // given
-        val task = TaskMother.random(userId = "user-1")
+        val userId = UUID.randomUUID()
+        val task = TaskMother.random(userId = userId)
         taskRepository.save(task = task)
 
         // when / then
         assertThrows<TaskNotFoundException> {
-            taskService.archive(taskId = task.id, userId = "other-user")
+            taskService.archive(taskId = task.id, userId = UUID.randomUUID())
         }
     }
 }

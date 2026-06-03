@@ -43,12 +43,12 @@ class TaskControllerTest {
 
     private lateinit var mockMvc: MockMvc
     private val objectMapper = JsonMapper.builder().build()
-    private val userId = UUID.randomUUID().toString()
+    private val userId = UUID.randomUUID()
     private val principal: Principal = mockk()
 
     @BeforeEach
     fun setUp() {
-        every { principal.name } returns userId
+        every { principal.name } returns userId.toString()
         mockMvc = MockMvcBuilders
             .standaloneSetup(controller)
             .setControllerAdvice(TaskExceptionHandler())
@@ -59,7 +59,7 @@ class TaskControllerTest {
     @Test
     fun `should return 201 when creating a new task`() {
         // given
-        val taskId = UUID.randomUUID().toString()
+        val taskId = UUID.randomUUID()
         val task = TaskMother.random(id = taskId, userId = userId)
         every { getTaskUseCase(taskId = taskId, userId = userId) } throws TaskNotFoundException(taskId = taskId)
         every { createTaskUseCase(request = any()) } returns task
@@ -73,13 +73,13 @@ class TaskControllerTest {
                 .principal(principal),
         )
             .andExpect(status().isCreated)
-            .andExpect(jsonPath("$.id").value(taskId))
+            .andExpect(jsonPath("$.id").value(taskId.toString()))
     }
 
     @Test
     fun `should return 200 with existing task when PUT-ing an existing taskId (idempotent)`() {
         // given
-        val taskId = UUID.randomUUID().toString()
+        val taskId = UUID.randomUUID()
         val task = TaskMother.random(id = taskId, userId = userId)
         every { getTaskUseCase(taskId = taskId, userId = userId) } returns task
         val body = """{"title": "My task", "description": "desc"}"""
@@ -92,7 +92,7 @@ class TaskControllerTest {
                 .principal(principal),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(taskId))
+            .andExpect(jsonPath("$.id").value(taskId.toString()))
     }
 
     @Test
@@ -112,7 +112,7 @@ class TaskControllerTest {
     @Test
     fun `should return 404 when getting a non-existing task`() {
         // given
-        val taskId = UUID.randomUUID().toString()
+        val taskId = UUID.randomUUID()
         every { getTaskUseCase(taskId = taskId, userId = userId) } throws TaskNotFoundException(taskId = taskId)
 
         // when / then

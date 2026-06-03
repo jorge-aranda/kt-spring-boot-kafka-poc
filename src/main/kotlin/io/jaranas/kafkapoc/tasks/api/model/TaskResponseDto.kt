@@ -2,10 +2,11 @@ package io.jaranas.kafkapoc.tasks.api.model
 
 import io.jaranas.kafkapoc.tasks.domain.model.Task
 import java.time.Instant
+import java.util.UUID
 
 data class TaskResponseDto(
-    val id: String,
-    val userId: String,
+    val id: UUID,
+    val userId: UUID,
     val title: String,
     val description: String,
     val completed: Boolean,

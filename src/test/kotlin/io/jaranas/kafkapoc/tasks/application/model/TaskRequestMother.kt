@@ -4,8 +4,8 @@ import java.util.UUID
 
 object TaskRequestMother {
     fun random(
-        taskId: String = UUID.randomUUID().toString(),
-        userId: String = UUID.randomUUID().toString(),
+        taskId: UUID = UUID.randomUUID(),
+        userId: UUID = UUID.randomUUID(),
         title: String = "Task title",
         description: String = "Task description",
     ): TaskRequest = TaskRequest(

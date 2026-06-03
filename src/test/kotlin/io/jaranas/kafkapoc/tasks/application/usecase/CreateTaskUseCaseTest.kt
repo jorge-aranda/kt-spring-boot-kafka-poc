@@ -9,6 +9,7 @@ import io.mockk.slot
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class CreateTaskUseCaseTest {
 
@@ -18,8 +19,9 @@ class CreateTaskUseCaseTest {
     @Test
     fun `should create a task from request`() {
         // given
+        val userId = UUID.randomUUID()
         val request = TaskRequestMother.random(
-            userId = "user-1",
+            userId = userId,
             title = "My task",
             description = "desc",
         )
@@ -30,7 +32,7 @@ class CreateTaskUseCaseTest {
         val result = useCase(request = request)
 
         // then
-        assertEquals("user-1", result.userId)
+        assertEquals(userId, result.userId)
         assertEquals("My task", result.title)
         assertEquals("desc", result.description)
         assertNotNull(result.id)

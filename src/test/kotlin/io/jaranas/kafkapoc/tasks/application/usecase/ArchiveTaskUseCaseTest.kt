@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class ArchiveTaskUseCaseTest {
 
@@ -15,12 +16,13 @@ class ArchiveTaskUseCaseTest {
     @Test
     fun `should invoke taskService archive and return result`() {
         // given
-        val task = TaskMother.random(userId = "user-1")
+        val userId = UUID.randomUUID()
+        val task = TaskMother.random(userId = userId)
         val archived = task.copy(archived = true)
-        every { taskService.archive(taskId = task.id, userId = "user-1") } returns archived
+        every { taskService.archive(taskId = task.id, userId = userId) } returns archived
 
         // when
-        val result = useCase(taskId = task.id, userId = "user-1")
+        val result = useCase(taskId = task.id, userId = userId)
 
         // then
         assertEquals(archived, result)

@@ -5,8 +5,8 @@ import java.util.UUID
 
 object TaskMother {
     fun random(
-        id: String = UUID.randomUUID().toString(),
-        userId: String = UUID.randomUUID().toString(),
+        id: UUID = UUID.randomUUID(),
+        userId: UUID = UUID.randomUUID(),
         title: String = "Task title",
         description: String = "Task description",
         completed: Boolean = false,
@@ -25,12 +25,12 @@ object TaskMother {
     )
 
     fun completed(
-        id: String = UUID.randomUUID().toString(),
-        userId: String = UUID.randomUUID().toString(),
+        id: UUID = UUID.randomUUID(),
+        userId: UUID = UUID.randomUUID(),
     ): Task = random(id = id, userId = userId, completed = true)
 
     fun archived(
-        id: String = UUID.randomUUID().toString(),
-        userId: String = UUID.randomUUID().toString(),
+        id: UUID = UUID.randomUUID(),
+        userId: UUID = UUID.randomUUID(),
     ): Task = random(id = id, userId = userId, archived = true)
 }

@@ -69,8 +69,8 @@ ObjectMothers provide factory methods to create test instances of domain and app
 ```kotlin
 object TaskMother {
     fun random(
-        id: String = UUID.randomUUID().toString(),
-        userId: String = UUID.randomUUID().toString(),
+        id: UUID = UUID.randomUUID(),
+        userId: UUID = UUID.randomUUID(),
         title: String = "Task title",
         description: String = "Task description",
         completed: Boolean = false,
@@ -104,13 +104,12 @@ object TaskMother {
 
 ```kotlin
 class FakeTaskRepository : TaskRepository {
-    private val store = mutableMapOf<String, Task>()
+    private val store = mutableMapOf<UUID, Task>()
 
     override fun save(task: Task): Task { store[task.id] = task; return task }
-    override fun findById(id: String): Task? = store[id]
-    override fun findByUserIdAndArchivedFalse(userId: String): List<Task> =
+    override fun findById(id: UUID): Task? = store[id]
+    override fun findByUserIdAndArchivedFalse(userId: UUID): List<Task> =
         store.values.filter { it.userId == userId && !it.archived }
-    override fun deleteById(id: String) { store.remove(id) }
 }
 ```
 
@@ -142,8 +141,9 @@ class CreateTaskUseCaseTest {
     @Test
     fun `should create a task from request`() {
         // given
+        val userId = UUID.randomUUID()
         val request = TaskRequestMother.random(
-            userId = "user-1",
+            userId = userId,
             title = "My task",
             description = "desc",
         )
@@ -154,7 +154,7 @@ class CreateTaskUseCaseTest {
         val result = useCase(request = request)
 
         // then
-        assertEquals("user-1", result.userId)
+        assertEquals(userId, result.userId)
         assertEquals("My task", result.title)
         assertEquals("desc", result.description)
         assertNotNull(result.id)

@@ -3,22 +3,23 @@ package io.jaranas.kafkapoc.tasks.infrastructure.repository.impl
 import io.jaranas.kafkapoc.tasks.domain.model.Task
 import io.jaranas.kafkapoc.tasks.domain.repository.TaskRepository
 import io.jaranas.kafkapoc.tasks.infrastructure.model.TaskDbo
-import io.jaranas.kafkapoc.tasks.infrastructure.repository.TaskMongoRepository
+import io.jaranas.kafkapoc.tasks.infrastructure.repository.TaskMongoDboRepository
 import org.springframework.stereotype.Component
+import java.util.UUID
 
 @Component
-class MongoTaskRepository(
-    private val taskMongoRepository: TaskMongoRepository,
+class TaskRepositoryImpl(
+    private val taskMongoDboRepository: TaskMongoDboRepository,
 ) : TaskRepository {
 
     override fun save(task: Task): Task =
-        taskMongoRepository.save(task.toDbo()).toDomain()
+        taskMongoDboRepository.save(task.toDbo()).toDomain()
 
-    override fun findById(id: String): Task? =
-        taskMongoRepository.findById(id).orElse(null)?.toDomain()
+    override fun findById(id: UUID): Task? =
+        taskMongoDboRepository.findById(id).orElse(null)?.toDomain()
 
-    override fun findByUserIdAndArchivedFalse(userId: String): List<Task> =
-        taskMongoRepository.findByUserIdAndArchivedFalse(userId = userId).map { it.toDomain() }
+    override fun findByUserIdAndArchivedFalse(userId: UUID): List<Task> =
+        taskMongoDboRepository.findByUserIdAndArchivedFalse(userId = userId).map { it.toDomain() }
 }
 
 private fun Task.toDbo(): TaskDbo = TaskDbo(

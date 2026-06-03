@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class ListUserTasksUseCaseTest {
 
@@ -15,7 +16,7 @@ class ListUserTasksUseCaseTest {
     @Test
     fun `should return list of active tasks for user`() {
         // given
-        val userId = "user-1"
+        val userId = UUID.randomUUID()
         val tasks = listOf(TaskMother.random(userId = userId), TaskMother.random(userId = userId))
         every { taskService.listActiveForUser(userId = userId) } returns tasks
 

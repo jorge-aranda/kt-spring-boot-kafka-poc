@@ -1,0 +1,296 @@
+Command finished with exit code 0.
+Command output:
+=== TaskServiceTest ===
+package io.jaranas.kafkapoc.tasks.domain.service
+
+import io.jaranas.kafkapoc.tasks.domain.exception.TaskNotFoundException
+import io.jaranas.kafkapoc.tasks.domain.model.TaskMother
+import io.jaranas.kafkapoc.tasks.domain.repository.FakeTaskRepository
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+
+class TaskServiceTest {
+
+    private lateinit var taskRepository: FakeTaskRepository
+    private lateinit var taskService: TaskService
+
+    @BeforeEach
+    fun setUp() {
+        taskRepository = FakeTaskRepository()
+        taskService = TaskService(taskRepository = taskRepository)
+    }
+
+    @Test
+    fun `should create a task with createdAt and updatedAt set`() {
+        // given
+        val task = TaskMother.random()
+
+        // when
+        val result = taskService.create(task = task)
+
+        // then
+        assertNotNull(result.id)
+        assertEquals(task.userId, result.userId)
+        assertEquals(task.title, result.title)
+        assertNotNull(result.createdAt)
+        assertNotNull(result.updatedAt)
+    }
+
+    @Test
+    fun `should return existing task when creating with an id that already belongs to the user`() {
+        // given
+        val task = TaskMother.random()
+        taskRepository.save(task = task)
+
+        // when
+        val result = taskService.create(task = task)
+
+        // then
+        assertEquals(task, result)
+    }
+
+    @Test
+    fun `should throw TaskNotFoundException when creating with an id owned by another user`() {
+        // given
+        val existing = TaskMother.random()
+        taskRepository.save(task = existing)
+        val conflicting = existing.copy(userId = "other-user")
+
+        // when / then
+        assertThrows<TaskNotFoundException> {
+            taskService.create(task = conflicting)
+        }
+    }
+
+    @Test
+    fun `should list only non-archived tasks for the given user`() {
+        // given
+        val userId = "user-1"
+        val active = TaskMother.random(userId = userId)
+        val archived = TaskMother.archived(userId = userId)
+        val otherUser = TaskMother.random()
+        taskRepository.save(task = active)
+        taskRepository.save(task = archived)
+        taskRepository.save(task = otherUser)
+
+        // when
+        val result = taskService.listActiveForUser(userId = userId)
+
+        // then
+        assertEquals(1, result.size)
+        assertEquals(active.id, result.first().id)
+    }
+
+    @Test
+    fun `should mark a task as completed and update updatedAt`() {
+        // given
+        val task = TaskMother.random(userId = "user-1")
+        taskRepository.save(task = task)
+
+        // when
+        val result = taskService.complete(taskId = task.id, userId = "user-1")
+
+        // then
+        assertTrue(result.completed)
+        assertTrue(result.updatedAt.isAfter(task.updatedAt) || result.updatedAt == task.updatedAt)
+    }
+
+    @Test
+    fun `should be no-op when completing an already completed task`() {
+        // given
+        val task = TaskMother.completed(userId = "user-1")
+        taskRepository.save(task = task)
+
+        // when
+        val result = taskService.complete(taskId = task.id, userId = "user-1")
+
+        // then
+        assertTrue(result.completed)
+        assertEquals(task, result)
+    }
+
+    @Test
+    fun `should archive a task and update updatedAt`() {
+        // given
+        val task = TaskMother.random(userId = "user-1")
+        taskRepository.save(task = task)
+
+        // when
+        val result = taskService.archive(taskId = task.id, userId = "user-1")
+
+        // then
+        assertTrue(result.archived)
+        assertFalse(result.completed)
+    }
+
+    @Test
+    fun `should throw TaskNotFoundException when archiving a task of another user`() {
+        // given
+        val task = TaskMother.random(userId = "user-1")
+        taskRepository.save(task = task)
+
+        // when / then
+        assertThrows<TaskNotFoundException> {
+            taskService.archive(taskId = task.id, userId = "other-user")
+        }
+    }
+}
+=== CreateTaskUseCaseTest ===
+package io.jaranas.kafkapoc.tasks.application.usecase
+
+import io.jaranas.kafkapoc.tasks.application.model.TaskRequestMother
+import io.jaranas.kafkapoc.tasks.domain.model.Task
+import io.jaranas.kafkapoc.tasks.domain.service.TaskService
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
+
+class CreateTaskUseCaseTest {
+
+    private val taskService: TaskService = mockk()
+    private val useCase = CreateTaskUseCase(taskService = taskService)
+
+    @Test
+    fun `should create a task from request`() {
+        // given
+        val request = TaskRequestMother.random(
+            userId = "user-1",
+            title = "My task",
+            description = "desc",
+        )
+        val taskSlot = slot<Task>()
+        every { taskService.create(task = capture(taskSlot)) } answers { taskSlot.captured }
+
+        // when
+        val result = useCase(request = request)
+
+        // then
+        assertEquals("user-1", result.userId)
+        assertEquals("My task", result.title)
+        assertEquals("desc", result.description)
+        assertNotNull(result.id)
+    }
+}
+=== GetTaskUseCaseTest ===
+package io.jaranas.kafkapoc.tasks.application.usecase
+
+import io.jaranas.kafkapoc.tasks.domain.model.TaskMother
+import io.jaranas.kafkapoc.tasks.domain.service.TaskService
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class GetTaskUseCaseTest {
+
+    private val taskService: TaskService = mockk()
+    private val useCase = GetTaskUseCase(taskService = taskService)
+
+    @Test
+    fun `should return task from service`() {
+        // given
+        val task = TaskMother.random(userId = "user-1")
+        every { taskService.findByIdForUser(taskId = task.id, userId = "user-1") } returns task
+
+        // when
+        val result = useCase(taskId = task.id, userId = "user-1")
+
+        // then
+        assertEquals(task, result)
+    }
+}
+=== ListUserTasksUseCaseTest ===
+package io.jaranas.kafkapoc.tasks.application.usecase
+
+import io.jaranas.kafkapoc.tasks.domain.model.TaskMother
+import io.jaranas.kafkapoc.tasks.domain.service.TaskService
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class ListUserTasksUseCaseTest {
+
+    private val taskService: TaskService = mockk()
+    private val useCase = ListUserTasksUseCase(taskService = taskService)
+
+    @Test
+    fun `should return list of active tasks for user`() {
+        // given
+        val userId = "user-1"
+        val tasks = listOf(TaskMother.random(userId = userId), TaskMother.random(userId = userId))
+        every { taskService.listActiveForUser(userId = userId) } returns tasks
+
+        // when
+        val result = useCase(userId = userId)
+
+        // then
+        assertEquals(tasks, result)
+    }
+}
+=== CompleteTaskUseCaseTest ===
+package io.jaranas.kafkapoc.tasks.application.usecase
+
+import io.jaranas.kafkapoc.tasks.domain.model.TaskMother
+import io.jaranas.kafkapoc.tasks.domain.service.TaskService
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class CompleteTaskUseCaseTest {
+
+    private val taskService: TaskService = mockk()
+    private val useCase = CompleteTaskUseCase(taskService = taskService)
+
+    @Test
+    fun `should invoke taskService complete and return result`() {
+        // given
+        val task = TaskMother.random(userId = "user-1")
+        val completed = task.copy(completed = true)
+        every { taskService.complete(taskId = task.id, userId = "user-1") } returns completed
+
+        // when
+        val result = useCase(taskId = task.id, userId = "user-1")
+
+        // then
+        assertEquals(completed, result)
+    }
+}
+=== ArchiveTaskUseCaseTest ===
+package io.jaranas.kafkapoc.tasks.application.usecase
+
+import io.jaranas.kafkapoc.tasks.domain.model.TaskMother
+import io.jaranas.kafkapoc.tasks.domain.service.TaskService
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class ArchiveTaskUseCaseTest {
+
+    private val taskService: TaskService = mockk()
+    private val useCase = ArchiveTaskUseCase(taskService = taskService)
+
+    @Test
+    fun `should invoke taskService archive and return result`() {
+        // given
+        val task = TaskMother.random(userId = "user-1")
+        val archived = task.copy(archived = true)
+        every { taskService.archive(taskId = task.id, userId = "user-1") } returns archived
+
+        // when
+        val result = useCase(taskId = task.id, userId = "user-1")
+
+        // then
+        assertEquals(archived, result)
+    }
+}
