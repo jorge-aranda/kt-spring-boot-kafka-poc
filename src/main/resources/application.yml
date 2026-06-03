@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: kafka-poc
+  data:
+    mongodb:
+      host: ${SPRING_DATA_MONGODB_HOST:localhost}
+      port: ${SPRING_DATA_MONGODB_PORT:27017}
+      database: ${SPRING_DATA_MONGODB_DATABASE:kafkapoc}
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:kafka-poc}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
