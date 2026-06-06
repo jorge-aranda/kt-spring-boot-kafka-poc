@@ -8,6 +8,8 @@ plugins {
 group = "io.jaranas"
 version = "0.5.0-SNAPSHOT"
 
+extra["springAiVersion"] = "2.0.0-M8"
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -36,6 +38,9 @@ dependencies {
     // The starter brings spring-kafka transitively AND the relocated Kafka auto-configuration
     // (org.springframework.boot.kafka.autoconfigure), which is what registers the KafkaTemplate bean.
     implementation("org.springframework.boot:spring-boot-starter-kafka")
+
+    // MCP (Model Context Protocol) server
+    implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
 
     // Kotlin support
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -109,6 +114,12 @@ dependencies {
     e2eTestImplementation("org.testcontainers:junit-jupiter")
     e2eTestImplementation("org.testcontainers:mongodb")
     e2eTestImplementation("org.testcontainers:kafka")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
+    }
 }
 
 tasks.withType<Test> {

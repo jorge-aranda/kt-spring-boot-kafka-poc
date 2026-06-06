@@ -12,6 +12,7 @@ It complements the global [`AGENTS.md`](../../../../../AGENTS.md) and
 io.jaranas.kafkapoc.tasks
 ├── api/
 │   ├── controller/          ← TaskController, TaskExceptionHandler
+│   ├── mcp/                 ← TaskMcpTools, TaskMcpConfig, model/TaskToolResponse
 │   └── model/               ← CreateTaskRequestDto, TaskResponseDto
 ├── application/
 │   ├── model/               ← TaskRequest
@@ -23,11 +24,33 @@ io.jaranas.kafkapoc.tasks
 │   ├── repository/          ← TaskRepository (port interface)
 │   └── service/             ← TaskService
 └── infrastructure/
+    ├── messaging/           ← producer/, consumer/, model/
     ├── model/               ← TaskDbo
     └── repository/
         ├── TaskMongoDboRepository.kt
         └── impl/TaskRepositoryImpl.kt
 ```
+
+---
+
+## MCP Adapter
+
+The tasks use cases are also exposed through an MCP (Model Context Protocol) adapter
+that lives in `api/mcp/`. It is an alternative entry point to the REST
+`TaskController` and follows the same hexagonal rules as the API layer: it depends
+only on the `application.usecase` layer.
+
+- Transport: WebMVC SSE (provided by `spring-ai-starter-mcp-server-webmvc`).
+- Tools exposed (paridad con el controller):
+  - `tasks_create_task` — idempotent on `taskId`.
+  - `tasks_get_task`
+  - `tasks_list_user_tasks`
+  - `tasks_complete_task`
+  - `tasks_archive_task`
+- The MCP transport has no Spring Security `Principal`, so every tool requires
+  `userId` (UUIDv4) as an explicit argument.
+- The MCP endpoints (`/sse`, `/mcp/**`) are permitted without authentication for
+  this PoC milestone — to be revisited when securing the MCP transport.
 
 ---
 
