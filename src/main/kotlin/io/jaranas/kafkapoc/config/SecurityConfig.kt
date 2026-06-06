@@ -24,6 +24,8 @@ class SecurityConfig {
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                    .requestMatchers("/sse", "/mcp/**").permitAll()
+                    .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
             }
             .httpBasic { }

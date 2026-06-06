@@ -8,6 +8,8 @@ plugins {
 group = "io.jaranas"
 version = "0.4.0-SNAPSHOT"
 
+extra["springAiVersion"] = "2.0.0-M8"
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -32,8 +34,13 @@ dependencies {
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    // Messaging
-    implementation("org.springframework.kafka:spring-kafka")
+    // Messaging — Spring Boot 4 modular starter (replaces direct org.springframework.kafka:spring-kafka)
+    // The starter brings spring-kafka transitively AND the relocated Kafka auto-configuration
+    // (org.springframework.boot.kafka.autoconfigure), which is what registers the KafkaTemplate bean.
+    implementation("org.springframework.boot:spring-boot-starter-kafka")
+
+    // MCP (Model Context Protocol) server
+    implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
 
     // Kotlin support
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -41,7 +48,7 @@ dependencies {
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-kafka-test")
     testImplementation("io.mockk:mockk:1.13.13")
     testImplementation("org.springframework.security:spring-security-test")
 }
@@ -49,6 +56,12 @@ dependencies {
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
     }
 }
 

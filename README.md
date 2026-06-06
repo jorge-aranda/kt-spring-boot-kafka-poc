@@ -191,6 +191,118 @@ Full domain registry and decisions: [`docs/DOMAINS.md`](docs/DOMAINS.md).
 
 ---
 
+## MCP Server (Model Context Protocol)
+
+The `tasks` domain use cases are also exposed through an **MCP server** as an alternative
+entry point to the REST API. This lets MCP-compatible clients (Claude Desktop, IDE
+integrations, custom agents, …) invoke `tasks` operations as tools.
+
+- **Library:** [`spring-ai-starter-mcp-server-webmvc`](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html)
+  (Spring AI `2.0.0-M8`, aligned with Spring Boot 4).
+- **Transport:** SSE over HTTP, hosted in the same Spring Boot process.
+- **Adapter location:** `io.jaranas.kafkapoc.tasks.api.mcp` (API layer, peer to `controller/`).
+- **Server type:** `SYNC`. Configured under `spring.ai.mcp.server.*` in `application.yml`.
+
+### Endpoints
+
+| Endpoint   | Purpose                                                |
+|------------|--------------------------------------------------------|
+| `/sse`     | SSE stream the MCP client subscribes to.               |
+| `/mcp/**`  | JSON-RPC message endpoint used by the MCP client.      |
+
+Both are currently **permitted without authentication** for this PoC (see
+`SecurityConfig`). Securing the MCP transport is a follow-up.
+
+### Tools exposed
+
+All five tasks use cases are available with full parity with the REST controller. Because
+the MCP transport has no Spring Security `Principal`, every tool requires `userId`
+(UUIDv4) as an explicit argument.
+
+| Tool name                | Use case            | Required arguments                                  |
+|--------------------------|---------------------|-----------------------------------------------------|
+| `tasks_create_task`      | Create task         | `taskId`, `userId`, `title`, `description`          |
+| `tasks_get_task`         | Get task            | `taskId`, `userId`                                  |
+| `tasks_list_user_tasks`  | List user tasks     | `userId`                                            |
+| `tasks_complete_task`    | Complete task       | `taskId`, `userId`                                  |
+| `tasks_archive_task`     | Archive task        | `taskId`, `userId`                                  |
+
+`tasks_create_task` is idempotent on `taskId`: if a task with the same id already exists
+for that user, the existing one is returned instead of creating a new one.
+
+### Connecting an MCP client
+
+With the app running (Docker Compose or `./gradlew bootRun`), point any MCP client at the
+SSE endpoint:
+
+```
+http://localhost:8080/sse
+```
+
+#### Claude Desktop (via SSE proxy)
+
+Claude Desktop currently speaks the STDIO transport, so a small proxy
+(e.g. [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy)) is needed to bridge to SSE.
+Example `claude_desktop_config.json` snippet:
+
+```json
+{
+  "mcpServers": {
+    "kafka-poc-tasks": {
+      "command": "mcp-proxy",
+      "args": ["http://localhost:8080/sse"]
+    }
+  }
+}
+```
+
+#### Generic SSE-capable MCP client
+
+Just configure the server URL:
+
+```
+sse: http://localhost:8080/sse
+```
+
+### Quick smoke test
+
+Verify that the SSE endpoint is reachable (the connection should stay open and stream an
+initial `endpoint` event):
+
+```bash
+curl -N http://localhost:8080/sse
+```
+
+### Invoking a tool (example)
+
+Once the client is connected, listing the user's tasks looks like this from the MCP
+client side:
+
+```json
+{
+  "name": "tasks_list_user_tasks",
+  "arguments": {
+    "userId": "00000000-0000-0000-0000-000000000001"
+  }
+}
+```
+
+Creating a task:
+
+```json
+{
+  "name": "tasks_create_task",
+  "arguments": {
+    "taskId": "11111111-1111-4111-8111-111111111111",
+    "userId": "00000000-0000-0000-0000-000000000001",
+    "title": "My first task",
+    "description": "Created via MCP"
+  }
+}
+```
+
+---
+
 ## Kafka Topics
 
 Topic naming convention: `<domain>.<event>.v<version>` (kebab-case). Record keys are UUIDv4.

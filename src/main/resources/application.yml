@@ -1,17 +1,36 @@
 spring:
   application:
     name: kafka-poc
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: kafka-poc-mcp-server
+        version: 0.4.0
+        type: SYNC
+        instructions: >-
+          MCP server exposing the tasks domain use cases (create, get, list,
+          complete, archive) as tools. Callers must always provide a userId
+          (UUIDv4) explicitly since there is no authenticated principal.
   mongodb:
     uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/kafkapoc}
+    representation:
+      uuid: standard
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        # Fail fast if the broker is unreachable instead of blocking the caller
+        # for the default 2 minutes (delivery.timeout.ms).
+        max.block.ms: 5000
+        delivery.timeout.ms: 10000
+        request.timeout.ms: 5000
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:kafka-poc}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
       properties:
         spring.json.trusted.packages: "io.jaranas.kafkapoc.*"
         spring.json.use.type.headers: false
