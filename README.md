@@ -87,11 +87,24 @@ You still need a MongoDB and a Kafka broker reachable from the host. With both r
 ./gradlew bootRun
 ```
 
-Run the tests (no Mongo / Kafka required — autoconfiguration is excluded in the smoke test):
+### Tests
+
+The test suite is split into three Gradle scopes so the fast unit tests stay
+isolated from the slower, infrastructure-bound ones:
+
+| Scope | Source set | Gradle task | Requires Docker | Description |
+|---|---|---|---|---|
+| Unit | `src/test` | `./gradlew test` | No | Pure unit tests (MockK, fakes, MockMvc). |
+| Integration | `src/integrationTest` | `./gradlew integrationTest` | Yes | Boot a partial Spring context against real **MongoDB** and **Kafka** spun up by [Testcontainers](https://testcontainers.com/). |
+| End-to-end | `src/e2eTest` | `./gradlew e2eTest` | Yes | Boot the **full application** on a random port and exercise the public HTTP API + the cross-domain Kafka pipeline. |
+
+Run everything (including `integrationTest` and `e2eTest`) with:
 
 ```bash
-./gradlew test
+./gradlew check
 ```
+
+See [`docs/TESTING.md`](docs/TESTING.md) for testing conventions and details.
 
 ---
 
