@@ -19,10 +19,11 @@ spring:
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:kafka-poc}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
-      properties:
-        spring.json.trusted.packages: "io.jaranas.kafkapoc.*"
-        spring.json.use.type.headers: false
+      # We use ByteArrayDeserializer at the Kafka client level and let Spring Kafka
+      # convert the JSON payload into the listener's parameter type via the
+      # JacksonJsonMessageConverter bean (declared in KafkaConsumerConfig).
+      # This avoids the need for `__TypeId__` headers from the producer.
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 management:
   endpoints:
