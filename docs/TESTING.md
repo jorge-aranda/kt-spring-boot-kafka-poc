@@ -7,10 +7,11 @@ This document defines the testing conventions and rules for the project.
 ## Table of Contents
 
 1. [General Rules](#general-rules)
-2. [Test Structure — Given / When / Then](#test-structure--given--when--then)
-3. [ObjectMother Pattern](#objectmother-pattern)
-4. [Mocks vs Fakes](#mocks-vs-fakes)
-5. [Reference Test](#reference-test)
+2. [Test Scopes](#test-scopes)
+3. [Test Structure — Given / When / Then](#test-structure--given--when--then)
+4. [ObjectMother Pattern](#objectmother-pattern)
+5. [Mocks vs Fakes](#mocks-vs-fakes)
+6. [Reference Test](#reference-test)
 
 ---
 
@@ -20,6 +21,43 @@ This document defines the testing conventions and rules for the project.
 - **Language:** Kotlin — use **named parameters** in all calls.
 - **Pattern:** Always use the **given / when / then** pattern (see below). **Never** use `whenever` (Mockito style).
 - **Naming:** Test method names use backtick-quoted descriptive sentences, e.g. `` `should create a task from request` ``.
+
+---
+
+## Test Scopes
+
+The build splits tests into three Gradle source sets to keep fast unit tests isolated
+from the slower, infrastructure-bound ones:
+
+| Scope | Source set | Gradle task | Requires Docker | Purpose |
+|---|---|---|---|---|
+| Unit | `src/test/kotlin` | `./gradlew test` | No | Pure unit tests for domain services, use cases, controllers (MockMvc) and exception handlers. Use **MockK** and in-memory **fakes**. |
+| Integration | `src/integrationTest/kotlin` | `./gradlew integrationTest` | Yes | Boot the Spring context against a real **MongoDB** and **Kafka** spun up by [Testcontainers](https://testcontainers.com/). Exercise individual infrastructure adapters (`TaskRepositoryImpl`, `TaskEventKafkaPublisher`, …). |
+| End-to-end | `src/e2eTest/kotlin` | `./gradlew e2eTest` | Yes | Boot the **full application** on a random port and exercise the public HTTP API end-to-end, including the cross-domain Kafka pipeline `tasks → notifications`. |
+
+`./gradlew check` runs all three scopes; `./gradlew test` is intentionally limited to
+unit tests so the local feedback loop stays fast.
+
+### Conventions per scope
+
+- **Unit tests** never touch infrastructure. Use `FakeTaskRepository`-style fakes for the
+  domain layer and MockK for use-case dependencies.
+- **Integration tests** extend `io.jaranas.kafkapoc.support.IntegrationTestBase`, which
+  starts the Mongo and Kafka containers once per JVM and wires their addresses via
+  `@DynamicPropertySource`. Each test cleans the Mongo collections it touches in
+  `@BeforeEach`.
+- **End-to-end tests** extend `io.jaranas.kafkapoc.support.E2ETestBase`. Spring Boot 4
+  no longer ships `TestRestTemplate`, so e2e tests drive the API through a tiny
+  `E2EHttpClient` built on top of `RestClient` and inject the random port with
+  `@LocalServerPort`. HTTP Basic credentials use the configured dev user.
+- **Asynchronous assertions** in e2e tests (Kafka → Mongo materialisation) use
+  [Awaitility](https://github.com/awaitility/awaitility) — never `Thread.sleep`.
+
+### File naming
+
+- Unit test classes: `<Subject>Test.kt` (e.g. `CreateTaskUseCaseTest`).
+- Integration test classes: `<Subject>IntegrationTest.kt` (e.g. `TaskRepositoryImplIntegrationTest`).
+- End-to-end test classes: `<Feature>E2ETest.kt` (e.g. `TasksApiE2ETest`).
 
 ---
 
